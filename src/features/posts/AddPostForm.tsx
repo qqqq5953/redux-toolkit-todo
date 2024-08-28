@@ -29,13 +29,9 @@ export const AddPostForm = () => {
 
     console.log('Values: ', { title, content })
 
-    // Create the post object and dispatch the `postAdded` action
-    const newPost: Post = {
-      id: nanoid(),
-      title,
-      content
-    }
-    dispatch(postAdded(newPost))
+    // Now we can pass these in as separate arguments,
+    // and the ID will be generated automatically
+    dispatch(postAdded(title, content))
 
     e.currentTarget.reset()
   }
