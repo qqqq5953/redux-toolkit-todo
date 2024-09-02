@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
-import type { RootState } from '@/app/store'
+import { createSlice } from "@reduxjs/toolkit";
+import { selectCurrentUserId } from '@/features/auth/authSlice'
+import { RootState } from "@/app/store";
 
 interface User {
   id: string
@@ -21,15 +21,18 @@ const usersSlice = createSlice({
     // Note that these selectors are given just the `UsersState`
     // as an argument, not the entire `RootState`
     selectAllUsers: usersState => usersState,
-    selectUserById: (usersState, postId: string) => {
-      return usersState.find(post => post.id === postId)
-    }
+    selectUserById: (usersState, userId: string | null) => usersState.find(user => user.id === userId)
   }
 })
 
-export default usersSlice.reducer
+export const selectCurrentUser = (state: RootState) => {
+  const currentUserId = selectCurrentUserId(state)
+  return selectUserById(state, currentUserId)
+}
 
 export const { selectAllUsers, selectUserById } = usersSlice.selectors
+
+export default usersSlice.reducer
 
 // export const selectAllUsers = (state: RootState) => state.users
 
