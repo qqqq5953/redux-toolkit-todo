@@ -17,11 +17,21 @@ const usersSlice = createSlice({
   name: "users",
   initialState,
   reducers: {},
+  selectors: {
+    // Note that these selectors are given just the `UsersState`
+    // as an argument, not the entire `RootState`
+    selectAllUsers: usersState => usersState,
+    selectUserById: (usersState, postId: string) => {
+      return usersState.find(post => post.id === postId)
+    }
+  }
 })
 
 export default usersSlice.reducer
 
-export const selectAllUsers = (state: RootState) => state.users
+export const { selectAllUsers, selectUserById } = usersSlice.selectors
 
-export const selectUserById = (state: RootState, userId: string | null) =>
-  state.users.find(user => user.id === userId)
+// export const selectAllUsers = (state: RootState) => state.users
+
+// export const selectUserById = (state: RootState, userId: string | null) =>
+//   state.users.find(user => user.id === userId)
