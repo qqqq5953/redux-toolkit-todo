@@ -6,12 +6,15 @@ export interface Post {
   id: string
   title: string
   content: string
+  user: string
 }
+
+type PostUpdate = Pick<Post, 'id' | 'title' | 'content'>
 
 // Create an initial state value for the reducer, with that type
 const initialState: Post[] = [
-  { id: '1', title: 'First Post!', content: 'Hello!' },
-  { id: '2', title: 'Second Post', content: 'More text' }
+  { id: '1', title: 'First Post!', content: 'Hello!', user: '0' },
+  { id: '2', title: 'Second Post', content: 'More text', user: '2' }
 ]
 
 // Create the slice and pass in the initial state
@@ -25,13 +28,13 @@ const postsSlice = createSlice({
       },
       // If an action needs to contain a unique ID or some other random value, always generate that first and put it in the action object. Reducers should never calculate random values, because that makes the results unpredictable.
       // "prepare callback" function can take multiple arguments, generate random values like unique IDs, and run whatever other synchronous logic is needed to decide what values go into the action object.
-      prepare(title: string, content: string) {
+      prepare(title: string, content: string, userId: string) {
         return {
-          payload: { id: nanoid(), title, content }
+          payload: { id: nanoid(), title, content, user: userId }
         }
       }
     },
-    postUpdated(state, action: PayloadAction<Post>) {
+    postUpdated(state, action: PayloadAction<PostUpdate>) {
       const { id, title, content } = action.payload
       const updatedPost = state.find(post => post.id === id)
 
