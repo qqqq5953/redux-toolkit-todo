@@ -40,15 +40,22 @@ const postsSlice = createSlice({
         updatedPost.content = content
       }
     }
+  },
+  selectors: {
+    // Note that these selectors are given just the `PostsState`
+    // as an argument, not the entire `RootState`
+    selectAllPosts: postsState => postsState,
+    selectPostById: (postsState, postId: string) => {
+      return postsState.find(post => post.id === postId)
+    }
   }
+
 })
 
 export const { postAdded, postUpdated } = postsSlice.actions
 
+// replaced standalone selectors with these:
+export const { selectAllPosts, selectPostById } = postsSlice.selectors
+
 // Export the generated reducer function
 export default postsSlice.reducer
-export const selectAllPosts = (state: RootState) => state.posts
-
-export const selectPostById = (state: RootState, postId: string) =>
-  state.posts.find(post => post.id === postId)
-
