@@ -38,10 +38,22 @@ const initialReactions: Reactions = {
   eyes: 0
 }
 
-export const fetchPosts = createAppAsyncThunk('posts/fetchPosts', async () => {
-  const response = await client.get<Post[]>('/fakeApi/posts')
-  return response.data
-})
+export const fetchPosts = createAppAsyncThunk(
+  'posts/fetchPosts',
+  async () => {
+    const response = await client.get<Post[]>('/fakeApi/posts')
+    return response.data
+  },
+  {
+    condition(arg, thunkApi) {
+      const postsStatus = selectPostsStatus(thunkApi.getState())
+      if (postsStatus !== 'idle') {
+        return false
+      }
+    }
+  }
+
+)
 
 const initialState: PostsState = {
   posts: [],
@@ -128,7 +140,12 @@ const postsSlice = createSlice({
 export const { postAdded, postUpdated, reactionAdded } = postsSlice.actions
 
 // replaced standalone selectors with these:
-export const { selectAllPosts, selectPostById } = postsSlice.selectors
+export const {
+  selectAllPosts,
+  selectPostById,
+  selectPostsStatus,
+  selectPostsError
+} = postsSlice.selectors
 
 // Export the generated reducer function
 export default postsSlice.reducer
