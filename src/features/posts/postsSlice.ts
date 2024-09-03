@@ -31,24 +31,17 @@ const initialReactions: Reactions = {
   eyes: 0
 }
 
-const initialState: Post[] = [
-  {
-    id: '1',
-    title: 'First Post!',
-    content: 'Hello!',
-    user: '0',
-    date: sub(new Date(), { minutes: 10 }).toISOString(),
-    reactions: initialReactions
-  },
-  {
-    id: '2',
-    title: 'Second Post',
-    content: 'More text',
-    user: '2',
-    date: sub(new Date(), { minutes: 5 }).toISOString(),
-    reactions: initialReactions
-  }
-]
+interface PostsState {
+  posts: Post[]
+  status: 'idle' | 'pending' | 'succeeded' | 'rejected'
+  error: string | null
+}
+
+const initialState: PostsState = {
+  posts: [],
+  status: 'idle',
+  error: null
+}
 
 // Create the slice and pass in the initial state
 const postsSlice = createSlice({
@@ -57,7 +50,7 @@ const postsSlice = createSlice({
   reducers: {
     postAdded: {
       reducer(state, action: PayloadAction<Post>) {
-        state.push(action.payload)
+        state.posts.push(action.payload)
       },
       // If an action needs to contain a unique ID or some other random value, always generate that first and put it in the action object. Reducers should never calculate random values, because that makes the results unpredictable.
       // "prepare callback" function can take multiple arguments, generate random values like unique IDs, and run whatever other synchronous logic is needed to decide what values go into the action object.
@@ -76,7 +69,7 @@ const postsSlice = createSlice({
     },
     postUpdated(state, action: PayloadAction<PostUpdate>) {
       const { id, title, content } = action.payload
-      const updatedPost = state.find(post => post.id === id)
+      const updatedPost = state.posts.find(post => post.id === id)
 
       if (updatedPost) {
         updatedPost.title = title
@@ -88,7 +81,7 @@ const postsSlice = createSlice({
       action: PayloadAction<{ postId: string; reaction: ReactionName }>
     ) {
       const { postId, reaction } = action.payload
-      const existingPost = state.find(post => post.id === postId)
+      const existingPost = state.posts.find(post => post.id === postId)
       if (existingPost) {
         existingPost.reactions[reaction]++
       }
@@ -98,7 +91,7 @@ const postsSlice = createSlice({
     // Pass the action creator to `builder.addCase()`
     builder.addCase(userLoggedOut, (state) => {
       // Clear out the list of posts whenever the user logs out
-      return []
+      return initialState
     })
   },
   selectors: {
@@ -106,8 +99,10 @@ const postsSlice = createSlice({
     // as an argument, not the entire `RootState`
     selectAllPosts: postsState => postsState,
     selectPostById: (postsState, postId: string) => {
-      return postsState.find(post => post.id === postId)
-    }
+      return postsState.posts.find(post => post.id === postId)
+    },
+    selectPostsStatus: (postsState) => postsState.status,
+    selectPostsError: (postsState) => postsState.error
   }
 })
 
