@@ -1,8 +1,9 @@
 import { PayloadAction, createSlice, nanoid } from '@reduxjs/toolkit'
-import { sub } from 'date-fns'
+import { client } from '@/api/client'
 import { userLoggedOut } from '@/features/auth/authSlice'
+import { createAppAsyncThunk } from '@/app/withTypes'
 
-export interface Reactions {
+export type Reactions = {
   thumbsUp: number
   tada: number
   heart: number
@@ -12,7 +13,7 @@ export interface Reactions {
 
 export type ReactionName = keyof Reactions
 
-export interface Post {
+export type Post = {
   id: string
   title: string
   content: string
@@ -23,6 +24,12 @@ export interface Post {
 
 type PostUpdate = Pick<Post, 'id' | 'title' | 'content'>
 
+type PostsState = {
+  posts: Post[]
+  status: 'idle' | 'pending' | 'succeeded' | 'rejected'
+  error: string | null
+}
+
 const initialReactions: Reactions = {
   thumbsUp: 0,
   tada: 0,
@@ -31,11 +38,10 @@ const initialReactions: Reactions = {
   eyes: 0
 }
 
-interface PostsState {
-  posts: Post[]
-  status: 'idle' | 'pending' | 'succeeded' | 'rejected'
-  error: string | null
-}
+export const fetchPosts = createAppAsyncThunk('posts/fetchPosts', async () => {
+  const response = await client.get<Post[]>('/fakeApi/posts')
+  return response.data
+})
 
 const initialState: PostsState = {
   posts: [],
@@ -89,10 +95,23 @@ const postsSlice = createSlice({
   },
   extraReducers: (builder) => {
     // Pass the action creator to `builder.addCase()`
-    builder.addCase(userLoggedOut, (state) => {
-      // Clear out the list of posts whenever the user logs out
-      return initialState
-    })
+    builder
+      .addCase(userLoggedOut, (state) => {
+        // Clear out the list of posts whenever the user logs out
+        return initialState
+      })
+      .addCase(fetchPosts.pending, (state, action) => {
+        state.status = 'pending'
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        // Add any fetched posts to the array
+        state.posts.push(...action.payload)
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = 'rejected'
+        state.error = action.error.message ?? 'Unknown Error'
+      })
   },
   selectors: {
     // Note that these selectors are given just the `PostsState`
